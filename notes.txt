@@ -1,0 +1,16 @@
+password : password123
+
+------------------------
+
+usuarios:
+
+[ENTRENADORES]
+trainer@ejemplo.com
+
+[USUARIOS]
+usuario@ejemplo.com
+jofre@ejemplo.com
+
+[ADMINS]
+admin@ejemplo.com
+

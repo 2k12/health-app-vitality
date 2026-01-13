@@ -6,6 +6,7 @@ import '../../workout/domain/exercise.dart';
 import '../../workout/data/exercise_repository.dart';
 import '../data/trainer_repository.dart';
 import '../../../core/utils/app_notifications.dart';
+import '../../../core/theme/app_colors.dart';
 
 class WorkoutPlanFormScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -105,7 +106,7 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
   Future<void> _showExercisePicker() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.surfaceSheet,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -128,7 +129,7 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
             ),
             const Text('SELECCIONAR EJERCICIO',
                 style: TextStyle(
-                    color: Colors.cyanAccent,
+                    color: AppColors.highlight,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2)),
             const SizedBox(height: 16),
@@ -229,7 +230,7 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF050A14),
+      backgroundColor: AppColors.backgroundVeryDark,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -243,7 +244,7 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
             ))
           else
             IconButton(
-              icon: const Icon(Icons.save, color: Colors.cyanAccent),
+              icon: const Icon(Icons.save, color: AppColors.highlight),
               onPressed: _savePlan,
             ),
         ],
@@ -254,7 +255,7 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.cyanAccent.withOpacity(0.05),
+              AppColors.highlight.withOpacity(0.05),
               Colors.transparent,
             ],
           ),
@@ -275,7 +276,7 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
                           onSelected: (selected) {
                             if (selected) setState(() => _selectedDay = day);
                           },
-                          selectedColor: Colors.cyanAccent,
+                          selectedColor: AppColors.highlight,
                           labelStyle: TextStyle(
                             color: _selectedDay == day
                                 ? Colors.black
@@ -287,7 +288,7 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
                       )),
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline,
-                        color: Colors.cyanAccent),
+                        color: AppColors.highlight),
                     onPressed: _addDay,
                   ),
                   if (_dailyRoutines.length > 1)
@@ -335,11 +336,11 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
                     const SizedBox(height: 16),
                     OutlinedButton.icon(
                       onPressed: _showExercisePicker,
-                      icon: const Icon(Icons.add, color: Colors.cyanAccent),
+                      icon: const Icon(Icons.add, color: AppColors.highlight),
                       label: const Text('Agregar a la Lista',
-                          style: TextStyle(color: Colors.cyanAccent)),
+                          style: TextStyle(color: AppColors.highlight)),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.cyanAccent),
+                        side: const BorderSide(color: AppColors.highlight),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                     ),
@@ -360,7 +361,7 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
         Text(
           title,
           style: const TextStyle(
-            color: Colors.cyanAccent,
+            color: AppColors.highlight,
             fontWeight: FontWeight.bold,
             letterSpacing: 2,
             fontSize: 12,
@@ -368,7 +369,7 @@ class _WorkoutPlanFormScreenState extends ConsumerState<WorkoutPlanFormScreen> {
         ),
         const SizedBox(width: 8),
         const Expanded(
-            child: Divider(color: Colors.cyanAccent, thickness: 0.5)),
+            child: Divider(color: AppColors.highlight, thickness: 0.5)),
       ],
     );
   }
@@ -448,10 +449,10 @@ class _ExerciseFormItemState extends State<_ExerciseFormItem> {
             children: [
               CircleAvatar(
                 radius: 12,
-                backgroundColor: Colors.cyanAccent.withOpacity(0.2),
+                backgroundColor: AppColors.highlight.withOpacity(0.2),
                 child: Text('${widget.index + 1}',
                     style: const TextStyle(
-                        color: Colors.cyanAccent, fontSize: 10)),
+                        color: AppColors.highlight, fontSize: 10)),
               ),
               const SizedBox(width: 12),
               Expanded(

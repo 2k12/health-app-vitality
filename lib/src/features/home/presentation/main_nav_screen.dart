@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 import '../../users/presentation/user_dashboard_screen.dart';
 import '../../users/presentation/user_profile_screen.dart';
@@ -41,9 +42,6 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor =
         isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
-    final selectedColor = isDark ? AppColors.primaryDark : AppColors.primary;
-    final unselectedColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return Scaffold(
       body: IndexedStack(
@@ -51,51 +49,43 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
         children: _pages,
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: 'Hoy',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.fitness_center_outlined),
-              activeIcon: Icon(Icons.fitness_center_rounded),
-              label: 'Entrenar',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.restaurant_menu_outlined),
-              activeIcon: Icon(Icons.restaurant_menu_rounded),
-              label: 'Nutrición',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person_rounded),
-              label: 'Perfil',
-            ),
-          ],
+        color: backgroundColor,
+        child: SalomonBottomBar(
           currentIndex: _selectedIndex,
-          selectedItemColor: selectedColor,
-          unselectedItemColor: unselectedColor,
-          backgroundColor: Colors.transparent, // Handled by Container
-          type: BottomNavigationBarType.fixed,
-          elevation: 0,
-          showUnselectedLabels: true,
           onTap: _onItemTapped,
-          selectedLabelStyle:
-              const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-          unselectedLabelStyle:
-              const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+          items: [
+            /// Home
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.home_outlined),
+              activeIcon: const Icon(Icons.home_rounded),
+              title: const Text("Hoy"),
+              selectedColor: AppColors.primary,
+            ),
+
+            /// Workout
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.fitness_center_outlined),
+              activeIcon: const Icon(Icons.fitness_center_rounded),
+              title: const Text("Entrenar"),
+              selectedColor: AppColors.secondary,
+            ),
+
+            /// Diet
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.restaurant_menu_outlined),
+              activeIcon: const Icon(Icons.restaurant_menu_rounded),
+              title: const Text("Nutrición"),
+              selectedColor: AppColors.accent,
+            ),
+
+            /// Profile
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.person_outline),
+              activeIcon: const Icon(Icons.person_rounded),
+              title: const Text("Perfil"),
+              selectedColor: Colors.teal,
+            ),
+          ],
         ),
       ),
     );

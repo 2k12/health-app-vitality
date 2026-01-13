@@ -41,40 +41,40 @@ class UserDashboardScreen extends ConsumerWidget {
               const SizedBox(height: 32),
 
               // Activity Summary Title
-              Text(
+              const Text(
                 'Resumen de Hoy',
                 style: AppTextStyles.headingMedium,
               ),
               const SizedBox(height: 16),
 
               // Stats Grid
-              Row(
+              const Row(
                 children: [
                   Expanded(
                     child: GlassCard(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Icons.local_fire_department_rounded,
-                              color: Colors.orange, size: 32),
-                          const SizedBox(height: 12),
+                              color: AppColors.calories, size: 32),
+                          SizedBox(height: 12),
                           Text('0', style: AppTextStyles.headingLarge),
                           Text('Kcal Quemadas', style: AppTextStyles.caption),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   Expanded(
                     child: GlassCard(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Icons.water_drop_rounded,
-                              color: Colors.blue, size: 32),
-                          const SizedBox(height: 12),
+                              color: AppColors.hydration, size: 32),
+                          SizedBox(height: 12),
                           Text('0', style: AppTextStyles.headingLarge),
                           Text('Vasos de Agua', style: AppTextStyles.caption),
                         ],
@@ -87,7 +87,7 @@ class UserDashboardScreen extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // Next Workout Card
-              Text(
+              const Text(
                 'Tu Actividad',
                 style: AppTextStyles.headingMedium,
               ),

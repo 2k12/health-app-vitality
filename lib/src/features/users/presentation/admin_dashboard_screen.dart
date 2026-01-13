@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import '../../admin/presentation/food_management_screen.dart';
 import '../../admin/presentation/users_management_screen.dart';
 import '../../auth/data/auth_repository.dart';
 import '../presentation/user_profile_screen.dart';
+
+import '../../../../src/core/theme/app_colors.dart';
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -25,8 +28,12 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBarColor = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
+      extendBody: true, // Allow background to flow behind nav bar if needed
       body: Stack(
         children: [
           // 1. Background Layer (Void Black)
@@ -75,110 +82,95 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             ),
           ),
 
-          // 4. Content Content
+          // 4. Content
           SafeArea(
-            child: Row(
+            bottom: false, // Let content go behind nav bar potentially
+            child: Column(
               children: [
-                _buildNavRail(context),
-                const VerticalDivider(
-                    thickness: 1, width: 1, color: Colors.white10),
-                Expanded(
-                  child: Column(
+                // Header with Logout
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0, vertical: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // Custom AppBar-like header
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0, vertical: 16.0),
-                        child: Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.end, // Align to right only
-                          children: [
-                            // TEXT "PANEL DE ADMINISTRADOR" REMOVED AS REQUESTED
-                            IconButton(
-                              icon: const Icon(Icons.logout,
-                                  color: Colors.redAccent),
-                              onPressed: () {
-                                ref
-                                    .read(authRepositoryProvider.notifier)
-                                    .signOut();
-                              },
-                            )
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          transitionBuilder: (child, animation) {
-                            return FadeTransition(
-                                opacity: animation,
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                          begin: const Offset(0.05, 0),
-                                          end: Offset.zero)
-                                      .animate(animation),
-                                  child: child,
-                                ));
-                          },
-                          child: _buildContent(_selectedIndex),
-                        ),
-                      ),
+                      IconButton(
+                        icon: const Icon(Icons.logout, color: Colors.redAccent),
+                        onPressed: () {
+                          ref.read(authRepositoryProvider.notifier).signOut();
+                        },
+                      )
                     ],
                   ),
                 ),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                                    begin: const Offset(0.05, 0),
+                                    end: Offset.zero)
+                                .animate(animation),
+                            child: child,
+                          ));
+                    },
+                    child: _buildContent(_selectedIndex),
+                  ),
+                ),
+                // Add bottom padding for Nav Bar
+                const SizedBox(height: 80),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
+      bottomNavigationBar: Container(
+        color: navBarColor,
+        child: SalomonBottomBar(
+          currentIndex: _selectedIndex,
+          onTap: (i) => setState(() => _selectedIndex = i),
+          items: [
+            /// Resumen
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.dashboard_outlined),
+              activeIcon: const Icon(Icons.dashboard),
+              title: const Text("Resumen"),
+              selectedColor: AppColors.primary,
+            ),
 
-  Widget _buildNavRail(BuildContext context) {
-    return NavigationRail(
-      backgroundColor: Colors.transparent, // Transparent to show glow
-      selectedIndex: _selectedIndex,
-      onDestinationSelected: (int index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      // Selected: Pure White
-      selectedIconTheme: const IconThemeData(color: Colors.white, size: 30),
-      selectedLabelTextStyle:
-          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            /// Usuarios
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.people_outline),
+              activeIcon: const Icon(Icons.people),
+              title: const Text("Usuarios"),
+              selectedColor: AppColors.secondary,
+            ),
 
-      // Unselected: Dimmed White
-      unselectedIconTheme: IconThemeData(color: Colors.white.withOpacity(0.4)),
-      unselectedLabelTextStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+            /// Alimentos
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.restaurant_outlined),
+              activeIcon: const Icon(Icons.restaurant),
+              title: const Text("Alimentos"),
+              selectedColor: AppColors.accent,
+            ),
 
-      labelType: NavigationRailLabelType.all,
-      destinations: const <NavigationRailDestination>[
-        NavigationRailDestination(
-          icon: Icon(Icons.dashboard_outlined),
-          selectedIcon: Icon(Icons.dashboard),
-          label: Text('Resumen'),
+            /// Perfil
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.person_outline),
+              activeIcon: const Icon(Icons.person),
+              title: const Text("Perfil"),
+              selectedColor: Colors.teal,
+            ),
+          ],
         ),
-        NavigationRailDestination(
-          icon: Icon(Icons.people_outline),
-          selectedIcon: Icon(Icons.people),
-          label: Text('Usuarios'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.restaurant),
-          label: Text('Alimentos'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.person_outline),
-          selectedIcon: Icon(Icons.person),
-          label: Text('Perfil'),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildContent(int index) {
-    // Keyed for AnimatedSwitcher
     switch (index) {
       case 0:
         return _AdminHomeTab(

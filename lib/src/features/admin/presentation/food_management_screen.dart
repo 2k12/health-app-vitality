@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../diet/domain/diet_models.dart';
 import '../data/admin_repository.dart';
 import '../../../core/utils/app_notifications.dart';
+import '../../../core/theme/app_colors.dart'; // Add import
 
 class FoodManagementScreen extends ConsumerWidget {
   const FoodManagementScreen({super.key});
@@ -60,7 +61,7 @@ class FoodManagementScreen extends ConsumerWidget {
                               _showFoodDialog(context, ref, food: food)),
                       IconButton(
                           icon: const Icon(Icons.delete_outline,
-                              color: Colors.redAccent),
+                              color: AppColors.error),
                           onPressed: () => _deleteFood(context, ref, food.id)),
                     ],
                   ),

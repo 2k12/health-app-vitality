@@ -235,7 +235,13 @@ class _NutritionalSetupScreenState extends State<NutritionalSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Normalization: Use standard background color
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor =
+        isDark ? AppColors.backgroundDark : AppColors.backgroundLight;
+
     return Scaffold(
+      backgroundColor: bgColor,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text('CONFIGURACIÓN',
@@ -248,89 +254,76 @@ class _NutritionalSetupScreenState extends State<NutritionalSetupScreen> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.backgroundLight,
-              AppColors.indigoTint, // Subtle Indigo tint
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Progress Indicator
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Row(
-                  children: List.generate(3, (index) {
-                    final isActive = index <= _currentStep;
-                    return Expanded(
-                      child: Container(
-                        height: 4,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? AppColors.primary
-                              : AppColors.textSecondaryLight.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    _buildStep1(),
-                    _buildStep2(),
-                    _buildStep3(),
-                  ],
-                ),
-              ),
-
-              // Navigation Bar
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Row(
-                  children: [
-                    if (_currentStep > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16),
-                        child: SizedBox(
-                          width: 100,
-                          child: VitalButton(
-                            type: VitalButtonType.secondary,
-                            label: 'ATRÁS',
-                            isFullWidth: true,
-                            onPressed: () {
-                              _pageController.previousPage(
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.ease);
-                              setState(() => _currentStep--);
-                            },
-                          ),
-                        ),
-                      ),
-                    Expanded(
-                      child: VitalButton(
-                        label: _currentStep == 2 ? 'CALCULAR' : 'SIGUIENTE',
-                        onPressed: _nextStep,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Progress Indicator
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Row(
+                children: List.generate(3, (index) {
+                  final isActive = index <= _currentStep;
+                  return Expanded(
+                    child: Container(
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? AppColors.primary
+                            : AppColors.textSecondaryLight.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                  ],
-                ),
+                  );
+                }),
               ),
-            ],
-          ),
+            ),
+
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _buildStep1(),
+                  _buildStep2(),
+                  _buildStep3(),
+                ],
+              ),
+            ),
+
+            // Navigation Bar
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Row(
+                children: [
+                  if (_currentStep > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: SizedBox(
+                        width: 100,
+                        child: VitalButton(
+                          type: VitalButtonType.secondary,
+                          label: 'ATRÁS',
+                          isFullWidth: true,
+                          onPressed: () {
+                            _pageController.previousPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.ease);
+                            setState(() => _currentStep--);
+                          },
+                        ),
+                      ),
+                    ),
+                  Expanded(
+                    child: VitalButton(
+                      label: _currentStep == 2 ? 'CALCULAR' : 'SIGUIENTE',
+                      onPressed: _nextStep,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -358,7 +351,7 @@ class _NutritionalSetupScreenState extends State<NutritionalSetupScreen> {
             GlassCard(
               child: Column(
                 children: [
-                  // Gender Toggle
+                  // Gender Toggle using normalized GlassCards
                   Row(
                     children: [
                       Expanded(
@@ -434,31 +427,42 @@ class _NutritionalSetupScreenState extends State<NutritionalSetupScreen> {
 
   Widget _buildGenderOption(Gender g, IconData icon, String label) {
     final isSelected = _gender == g;
+    // Normalized: Using GlassCard visually but handling constraints manually or just styling distinctively
     return GestureDetector(
       onTap: () => setState(() => _gender = g),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : AppColors.surface,
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.2)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              if (isSelected)
-                BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4))
-            ]),
+            border: Border.all(
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.surfaceLight.withOpacity(0.2),
+                width: isSelected ? 2 : 1),
+            // Minimal shadow only if selected
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                        color: AppColors.primary.withOpacity(0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4))
+                  ]
+                : []),
         child: Column(
           children: [
             Icon(icon,
-                color: isSelected ? Colors.white : AppColors.textSecondaryLight,
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.textSecondaryLight,
                 size: 32),
             const SizedBox(height: 8),
             Text(label,
                 style: AppTextStyles.bodyMedium.copyWith(
                     color: isSelected
-                        ? Colors.white
+                        ? AppColors.primary
                         : AppColors.textSecondaryLight,
                     fontWeight: FontWeight.bold)),
           ],
@@ -525,16 +529,20 @@ class _NutritionalSetupScreenState extends State<NutritionalSetupScreen> {
     final isSelected = _goal == g;
     return GestureDetector(
       onTap: () => setState(() => _goal = g),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
-              : AppColors.surface,
+              // ? AppColors.primary.withOpacity(0.1)
+              ? Colors.transparent
+              : Colors
+                  .transparent, // Clean/transparent for unselected, normalized
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: isSelected ? AppColors.primary : Colors.transparent,
+              color: isSelected
+                  ? AppColors.primary
+                  : AppColors.surfaceLight.withOpacity(0.2),
               width: 2),
         ),
         child: Row(
@@ -547,7 +555,8 @@ class _NutritionalSetupScreenState extends State<NutritionalSetupScreen> {
                       style: AppTextStyles.headingMedium.copyWith(
                           color: isSelected
                               ? AppColors.primary
-                              : AppColors.textPrimaryLight,
+                              // : AppColors.textPrimaryLight,
+                              : Colors.white,
                           fontSize: 16)),
                   Text(subtitle,
                       style: AppTextStyles.bodySmall

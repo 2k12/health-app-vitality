@@ -104,7 +104,7 @@ class AppTheme {
 
   static InputDecorationTheme _inputDecorationTheme({required bool isLight}) {
     final fillColor =
-        isLight ? const Color(0xFFF5F5F5) : const Color(0xFF2C2C2C);
+        isLight ? AppColors.inputFillLight : AppColors.inputFillDark;
 
     return InputDecorationTheme(
       filled: true,

@@ -24,7 +24,7 @@ app.use(express.json());
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  max: 5000, // Limit each IP to 5000 requests per `window` (development friendly)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   store: new RedisStore({
@@ -48,6 +48,9 @@ import foodRoutes from "./routes/food.routes";
 
 // ... existing imports
 
+import notificationRoutes from "./routes/notification.routes";
+import organizationRoutes from "./routes/organization.routes";
+
 app.use("/api/auth", authRoutes);
 app.use("/api/measurements", measurementRoutes);
 app.use("/api/diet", dietRoutes);
@@ -57,6 +60,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api/trainer", trainerRoutes);
 app.use("/api/exercises", exerciseRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/organization", organizationRoutes);
 
 // Health check
 app.get("/", (req, res) => {

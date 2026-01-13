@@ -7,7 +7,10 @@ const prisma = new PrismaClient();
 // Get all users (Admin view)
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
+    const userOrgId = (req.user as any).organizationId;
+
     const users = await (prisma.user as any).findMany({
+      where: { organizationId: userOrgId },
       select: {
         id: true,
         name: true,
@@ -33,8 +36,13 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // Get all trainers (Admin view)
 export const getAllTrainers = async (req: Request, res: Response) => {
   try {
+    const userOrgId = (req.user as any).organizationId;
+
     const trainers = await (prisma.user as any).findMany({
-      where: { role: "ENTRENADOR" },
+      where: {
+        role: "ENTRENADOR",
+        organizationId: userOrgId,
+      },
       select: {
         id: true,
         name: true,
@@ -142,12 +150,15 @@ export const createUser = async (req: Request, res: Response) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    const userOrgId = (req.user as any).organizationId;
+
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
         name,
         role,
+        organizationId: userOrgId,
         // Optional: Create empty profile
         profile: {
           create: {
@@ -171,5 +182,77 @@ export const createUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Admin create user error:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Update User (Admin only)
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, email, role } = req.body;
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({ where: { id } });
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // If email is changing, check for conflicts
+    if (email && email !== existingUser.email) {
+      const emailConflict = await prisma.user.findUnique({ where: { email } });
+      if (emailConflict) {
+        return res.status(409).json({ message: "Email already in use" });
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        name,
+        email,
+        role,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: "Error updating user" });
+  }
+};
+
+// Get single user by ID
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = await (prisma.user as any).findUnique({
+      where: { id },
+      include: {
+        profile: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive,
+      profile: user.profile,
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Error fetching user" });
   }
 };

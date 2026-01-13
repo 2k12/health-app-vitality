@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import '../../auth/domain/app_user.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../trainer/data/trainer_repository.dart';
 import '../presentation/user_profile_screen.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../../src/core/theme/app_colors.dart';
 
 class TrainerDashboardScreen extends ConsumerStatefulWidget {
   const TrainerDashboardScreen({super.key});
@@ -27,8 +30,12 @@ class _TrainerDashboardScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBarColor = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
+      extendBody: true,
       body: Stack(
         children: [
           // 1. Background Layer (Void Black)
@@ -77,95 +84,83 @@ class _TrainerDashboardScreenState
             ),
           ),
 
-          // 4. Content Content
+          // 4. Content
           SafeArea(
-            child: Row(
+            bottom: false,
+            child: Column(
               children: [
-                _buildNavRail(context),
-                const VerticalDivider(
-                    thickness: 1, width: 1, color: Colors.white10),
-                Expanded(
-                  child: Column(
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0, vertical: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // Custom AppBar-like header
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0, vertical: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.logout,
-                                  color: Colors.redAccent),
-                              onPressed: () {
-                                ref
-                                    .read(authRepositoryProvider.notifier)
-                                    .signOut();
-                              },
-                            )
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          transitionBuilder: (child, animation) {
-                            return FadeTransition(
-                                opacity: animation,
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                          begin: const Offset(0.05, 0),
-                                          end: Offset.zero)
-                                      .animate(animation),
-                                  child: child,
-                                ));
-                          },
-                          child: _buildContent(_selectedIndex),
-                        ),
-                      ),
+                      IconButton(
+                        icon: const Icon(Icons.logout, color: Colors.redAccent),
+                        onPressed: () {
+                          ref.read(authRepositoryProvider.notifier).signOut();
+                        },
+                      )
                     ],
                   ),
                 ),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                                    begin: const Offset(0.05, 0),
+                                    end: Offset.zero)
+                                .animate(animation),
+                            child: child,
+                          ));
+                    },
+                    child: _buildContent(_selectedIndex),
+                  ),
+                ),
+                // Bottom spacer for nav bar
+                const SizedBox(height: 80),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
+      bottomNavigationBar: Container(
+        color: navBarColor,
+        child: SalomonBottomBar(
+          currentIndex: _selectedIndex,
+          onTap: (i) => setState(() => _selectedIndex = i),
+          items: [
+            /// Resumen
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.dashboard_outlined),
+              activeIcon: const Icon(Icons.dashboard),
+              title: const Text("Resumen"),
+              selectedColor: AppColors.primary,
+            ),
 
-  Widget _buildNavRail(BuildContext context) {
-    return NavigationRail(
-      backgroundColor: Colors.transparent,
-      selectedIndex: _selectedIndex,
-      onDestinationSelected: (int index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      selectedIconTheme: const IconThemeData(color: Colors.white, size: 30),
-      selectedLabelTextStyle:
-          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      unselectedIconTheme: IconThemeData(color: Colors.white.withOpacity(0.4)),
-      unselectedLabelTextStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-      labelType: NavigationRailLabelType.all,
-      destinations: const [
-        NavigationRailDestination(
-          icon: Icon(Icons.dashboard_outlined),
-          selectedIcon: Icon(Icons.dashboard),
-          label: Text('Resumen'),
+            /// Atletas
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.fitness_center_outlined),
+              activeIcon: const Icon(Icons.fitness_center),
+              title: const Text("Atletas"),
+              selectedColor: AppColors.secondary,
+            ),
+
+            /// Perfil
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.person_outline),
+              activeIcon: const Icon(Icons.person),
+              title: const Text("Perfil"),
+              selectedColor: Colors.teal,
+            ),
+          ],
         ),
-        NavigationRailDestination(
-          icon: Icon(Icons.fitness_center_outlined),
-          selectedIcon: Icon(Icons.fitness_center),
-          label: Text('Atletas'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.person_outline),
-          selectedIcon: Icon(Icons.person),
-          label: Text('Perfil'),
-        ),
-      ],
+      ),
     );
   }
 

@@ -296,6 +296,38 @@ async function main() {
     }
   }
 
+  // Seed Organizations
+  const orgCount = await prisma.organization.count();
+  if (orgCount === 0) {
+    console.log("Seeding organizations...");
+    const orgs = [
+      {
+        name: "Fitba",
+        slug: "fitba",
+        primaryColor: "#10B981",
+        secondaryColor: "#1F2937",
+        logoUrl: "https://fitbafood.vercel.app/logo.png", // Example/Placeholder
+        restaurantUrl: "https://fitbafood.vercel.app/",
+        nutritionDetails:
+          "<ul><li>5 Comidas diarias</li><li>Enfoque en macros balanceados</li></ul>",
+      },
+      {
+        name: "Vitality Health",
+        slug: "vitality",
+        primaryColor: "#3B82F6",
+        secondaryColor: "#1E3A8A",
+        logoUrl: null,
+        restaurantUrl: null,
+        nutritionDetails:
+          "<ul><li>Planes personalizados</li><li>Suplementación incluida</li></ul>",
+      },
+    ];
+
+    for (const org of orgs) {
+      await prisma.organization.create({ data: org });
+    }
+  }
+
   console.log("Seeding completed successfully.");
 }
 

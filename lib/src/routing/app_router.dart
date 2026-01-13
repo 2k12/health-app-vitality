@@ -71,6 +71,36 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         }
       }
 
+      // 4. Protección de Rutas por Rol (Role Guards)
+      if (isLoggedIn) {
+        final path = state.uri.path;
+
+        // Admin Routes Protection
+        if (path.startsWith('/admin-panel')) {
+          if (authState.role != UserRole.admin) {
+            // Usuario normal o trainer intentando entrar a admin -> Home/Dashboard respectivo
+            return authState.role == UserRole.trainer
+                ? '/trainer-dashboard'
+                : '/home';
+          }
+        }
+
+        // Trainer Routes Protection
+        if (path.startsWith('/trainer')) {
+          if (authState.role != UserRole.trainer &&
+              authState.role != UserRole.admin) {
+            // Usuario normal intentando ver cosas de trainer
+            return '/home';
+          }
+        }
+
+        // Prevent Admins/Trainers from accidentally landing on User Home
+        if (path == '/home' || path.startsWith('/home/')) {
+          if (authState.role == UserRole.admin) return '/admin-panel';
+          if (authState.role == UserRole.trainer) return '/trainer-dashboard';
+        }
+      }
+
       return null;
     },
     routes: [

@@ -62,9 +62,13 @@ class AppUser {
   }
 
   static UserRole _parseRole(String? role) {
-    switch (role) {
+    if (role == null) return UserRole.user;
+    final upperRole = role.toUpperCase();
+    switch (upperRole) {
+      case 'ADMIN':
       case 'ADMINISTRADOR':
         return UserRole.admin;
+      case 'TRAINER':
       case 'ENTRENADOR':
         return UserRole.trainer;
       default:

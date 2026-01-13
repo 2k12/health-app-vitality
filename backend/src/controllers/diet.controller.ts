@@ -23,13 +23,56 @@ export const generateDietPlan = async (req: Request, res: Response) => {
       orderBy: { date: "desc" },
     });
 
-    if (!measurement) {
-      return res
-        .status(404)
-        .json({ message: "No measurement found to calculate diet." });
-    }
+    let targetCalories = 2000; // Default fallback
 
-    const targetCalories = measurement.targetCalories || 2000;
+    if (!measurement) {
+      // 1.1 Fallback: Check User Profile
+      const profile = await prisma.userProfile.findUnique({
+        where: { userId },
+      });
+
+      if (!profile) {
+        return res.status(404).json({
+          message:
+            "No se encontraron medidas ni perfil. Por favor completa tu perfil primero.",
+        });
+      }
+
+      // Calculate BMR (Mifflin-St Jeor)
+      const isMale = profile.gender === "MASCULINO";
+      let bmr =
+        10 * profile.weight +
+        6.25 * profile.height -
+        5 * profile.age +
+        (isMale ? 5 : -161);
+
+      // Activity Multiplier
+      const activityMultipliers: Record<string, number> = {
+        SEDENTARIO: 1.2,
+        LIGERO: 1.375,
+        MODERADO: 1.55,
+        ACTIVO: 1.725,
+        MUY_ACTIVO: 1.9,
+      };
+      const activity = profile.activityLevel || "SEDENTARIO";
+      const tdee = bmr * (activityMultipliers[activity] || 1.2);
+
+      // Goal Adjustment
+      switch (profile.fitnessGoal) {
+        case "PERDER_PESO":
+          targetCalories = tdee - 500;
+          break;
+        case "GANAR_MUSCULO":
+          targetCalories = tdee + 500;
+          break;
+        case "MANTENIMIENTO":
+        default:
+          targetCalories = tdee;
+          break;
+      }
+    } else {
+      targetCalories = measurement.targetCalories || 2000;
+    }
 
     // Macro Split (approx 30% P, 40% C, 30% F)
     const targetProtein = (targetCalories * 0.3) / 4;
@@ -51,9 +94,10 @@ export const generateDietPlan = async (req: Request, res: Response) => {
     });
 
     if (!proteins.length || !carbs.length || !fats.length) {
-      return res
-        .status(500)
-        .json({ message: "Missing food items in database." });
+      return res.status(500).json({
+        message:
+          "Faltan alimentos en la base de datos (Proteína, Carb, Grasa).",
+      });
     }
 
     // 3. Helper to pick random item
@@ -158,10 +202,19 @@ export const generateDietPlan = async (req: Request, res: Response) => {
     });
 
     await deleteCache(`diet:latest:${userId}`);
-    res.json(fullPlan);
+
+    // Check if we used fallback (targetCalories was calculated from profile or default)
+    const wasFallback = !measurement;
+
+    res.json({
+      plan: fullPlan,
+      message: wasFallback
+        ? "Plan generado basado en tu Perfil (No existen registros de medidas recientes)."
+        : "Plan generado exitosamente basado en tu último control.",
+    });
   } catch (error) {
     console.error("Generate DietPlan error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };
 
@@ -169,7 +222,16 @@ export const createDietPlan = generateDietPlan; // Alias for compatibility if ne
 
 export const getLatestDietPlan = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    let userId = (req as any).user.userId;
+    const userRole = (req as any).user.role;
+
+    if (
+      req.query.userId &&
+      (userRole === "ADMINISTRADOR" || userRole === "ENTRENADOR")
+    ) {
+      userId = req.query.userId as string;
+    }
+
     const cacheKey = `diet:latest:${userId}`;
 
     const cachedPlan = await getCache(cacheKey);
@@ -199,8 +261,76 @@ export const getLatestDietPlan = async (req: Request, res: Response) => {
     res.json(plan);
   } catch (error) {
     console.error("Get DietPlan error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };
 
 export const getDietPlans = getLatestDietPlan; // Redirect to latest detail for now
+
+// Add Food to Meal (Admin/Trainer)
+export const addFoodToMeal = async (req: Request, res: Response) => {
+  try {
+    const { dietMealId } = req.params;
+    const { foodId, portionGram } = req.body;
+
+    // Validate inputs
+    if (!foodId || !portionGram) {
+      return res
+        .status(400)
+        .json({ message: "Se requiere ID de alimento y porción" });
+    }
+
+    const dietFood = await prisma.dietFood.create({
+      data: {
+        dietMealId,
+        foodId,
+        portionGram: parseInt(portionGram),
+      },
+      include: { food: true },
+    });
+
+    // Invalidate Cache (Find owner of this meal to invalidate correct key)
+    // Complex to find owner efficiently without query, but we can just clear all or try to lookup
+    const meal = await prisma.dietMeal.findUnique({
+      where: { id: dietMealId },
+      include: { dietPlan: true },
+    });
+    if (meal) {
+      await deleteCache(`diet:latest:${meal.dietPlan.userId}`);
+    }
+
+    res.json(dietFood);
+  } catch (error) {
+    console.error("Add Food error:", error);
+    res.status(500).json({ message: "Error al agregar alimento" });
+  }
+};
+
+// Remove Food from Meal
+export const removeFoodFromMeal = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; // dietFoodId
+
+    // Get info before delete for cache invalidation
+    const dietFood = await prisma.dietFood.findUnique({
+      where: { id },
+      include: { dietMeal: { include: { dietPlan: true } } },
+    });
+
+    if (!dietFood)
+      return res
+        .status(404)
+        .json({ message: "Entrada de alimento no encontrada" });
+
+    await prisma.dietFood.delete({ where: { id } });
+
+    if (dietFood.dietMeal?.dietPlan?.userId) {
+      await deleteCache(`diet:latest:${dietFood.dietMeal.dietPlan.userId}`);
+    }
+
+    res.json({ message: "Alimento eliminado" });
+  } catch (error) {
+    console.error("Remove Food error:", error);
+    res.status(500).json({ message: "Error al eliminar alimento" });
+  }
+};

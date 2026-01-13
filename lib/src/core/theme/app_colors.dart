@@ -8,6 +8,7 @@ class AppColors {
   // Accent
   static const Color accent = Color(0xFF00E676); // Vibrant Mint
   static const Color secondary = accent; // Alias for secondary
+  static const Color highlight = Colors.cyanAccent;
 
   // Background
   static const Color backgroundLight = Color(0xFFF8F9FA); // Off-White
@@ -37,4 +38,16 @@ class AppColors {
   static const Color chartProtein = accent;
   static const Color chartCarbs = Color(0xFF448AFF); // Blue Accent equivalent
   static const Color chartFat = Color(0xFFFFAB40); // Orange Accent equivalent
+
+  // Inputs
+  static const Color inputFillLight = Color(0xFFF5F5F5);
+  static const Color inputFillDark = Color(0xFF2C2C2C);
+
+  // Sheets & Surface variants
+  static const Color backgroundVeryDark = Color(0xFF050A14);
+  static const Color surfaceSheet = Color(0xFF0F172A);
+
+  // Semantics
+  static const Color calories = Colors.orange;
+  static const Color hydration = Colors.blue;
 }

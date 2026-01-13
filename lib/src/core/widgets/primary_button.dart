@@ -43,23 +43,29 @@ class _PrimaryButtonState extends State<PrimaryButton>
 
   void _onTapDown(TapDownDetails details) {
     if (!widget.isLoading && widget.onPressed != null) {
-      setState(() => _isPressed = true);
-      _controller.forward();
+      if (mounted) {
+        setState(() => _isPressed = true);
+        _controller.forward();
+      }
     }
   }
 
   void _onTapUp(TapUpDetails details) {
     if (!widget.isLoading && widget.onPressed != null) {
-      setState(() => _isPressed = false);
-      _controller.reverse();
+      if (mounted) {
+        setState(() => _isPressed = false);
+        _controller.reverse();
+      }
       widget.onPressed!();
     }
   }
 
   void _onTapCancel() {
     if (!widget.isLoading && widget.onPressed != null) {
-      setState(() => _isPressed = false);
-      _controller.reverse();
+      if (mounted) {
+        setState(() => _isPressed = false);
+        _controller.reverse();
+      }
     }
   }
 

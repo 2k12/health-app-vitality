@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { deleteCache } from "../utils/redis";
 
 const prisma = new PrismaClient();
 
@@ -54,6 +55,34 @@ export const upsertWorkoutPlan = async (req: Request, res: Response) => {
         },
       });
     }
+
+    // Sync User Profile Training Days
+    let daysCount = 0;
+    if (Array.isArray(exercises)) {
+      daysCount = exercises.length;
+    } else if (typeof exercises === "object") {
+      daysCount = Object.keys(exercises).length;
+    }
+
+    if (daysCount > 0) {
+      await prisma.userProfile.update({
+        where: { userId },
+        data: { trainingDays: daysCount },
+      });
+    }
+
+    // Notify User
+    await prisma.notification.create({
+      data: {
+        userId: userId, // Notify the CLIENT
+        title: "Nueva Rutina Asignada",
+        message: `Tu entrenador ha actualizado tu plan de entrenamiento. Ahora tienes una rutina de ${daysCount} días.`,
+        type: "PLAN_UPDATE",
+      },
+    });
+
+    // Invalidate User's Workout Cache
+    await deleteCache(`workouts:user:${userId}`);
 
     res.status(200).json(plan);
   } catch (error) {

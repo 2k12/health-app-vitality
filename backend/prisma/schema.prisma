@@ -7,17 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Organization {
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  name           String
+  
+  // Branding
+  primaryColor   String   @default("#10B981") // Emerald-500
+  secondaryColor String   @default("#1F2937") // Gray-800
+  logoUrl        String?
+  restaurantUrl  String?
+  nutritionDetails String? @db.Text
+  
+  users          User[]
+  createdAt      DateTime @default(now())
+}
+
 model User {
   id           String            @id @default(uuid())
   email        String            @unique
   passwordHash String
   name         String
   role         Role              @default(USUARIO)
+  
+  // Multi-Tenancy
+  organizationId String? // Optional for migration, enforce in logic
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
   createdAt    DateTime          @default(now())
   profile      UserProfile?
   measurements UserMeasurement[]
   workoutPlans WorkoutPlan[]
   dietPlans    DietPlan[]
+  notifications Notification[]
   isActive     Boolean           @default(true)
   acceptedTerms Boolean          @default(false)
 }
@@ -32,6 +54,7 @@ model UserProfile {
   weight            Float
   activityLevel     ActivityLevel
   fitnessGoal       FitnessGoal
+  trainingDays      Int          @default(3)
   assignedTrainerId String?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
@@ -133,10 +156,10 @@ model Exercise {
 }
 
 enum Role {
-
   USUARIO
   ADMINISTRADOR
   ENTRENADOR
+  SUPERADMIN
 }
 
 enum Gender {
@@ -163,4 +186,21 @@ enum UserGoal {
   VOLUMEN
   DEFINICION
   MANTENIMIENTO
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      NotificationType @default(SYSTEM)
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+}
+
+enum NotificationType {
+  SYSTEM
+  CLIENT_UPDATE
+  PLAN_UPDATE
 }
